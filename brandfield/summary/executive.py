@@ -58,7 +58,7 @@ def build_executive_summary(
     if not snapshots:
         return (
             f"📊 *{client_config.display_name}*\n"
-            f"No data available for this period."
+            f"Nenhum dado disponível para este período."
         )
 
     # ── Period label ──────────────────────────────────────────────────────

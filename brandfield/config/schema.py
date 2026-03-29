@@ -25,7 +25,7 @@ class MetaOrganicConfig(BaseModel):
 
 class MetaConfig(BaseModel):
     ad_account_id: str
-    instagram_business_id: str
+    instagram_business_id: Optional[str] = None
     access_token_env: str = Field(
         description="Name of the environment variable holding the Meta access token"
     )
@@ -33,9 +33,13 @@ class MetaConfig(BaseModel):
     organic: MetaOrganicConfig = Field(default_factory=MetaOrganicConfig)
 
     @model_validator(mode="after")
-    def at_least_one_source_enabled(self) -> "MetaConfig":
+    def validate_sources(self) -> "MetaConfig":
         if not self.ads.enabled and not self.organic.enabled:
             raise ValueError("At least one of meta.ads or meta.organic must be enabled.")
+        if self.organic.enabled and not self.instagram_business_id:
+            raise ValueError(
+                "meta.instagram_business_id is required when meta.organic.enabled is true."
+            )
         return self
 
 
@@ -60,12 +64,6 @@ class NotificationsConfig(BaseModel):
 class ReportScheduleConfig(BaseModel):
     daily: bool = True
     weekly: bool = True
-
-
-class KpiCard(BaseModel):
-    metric: str
-    label: str
-    format: Literal["currency", "number", "percent", "multiplier"] = "number"
 
 
 class ReportConfig(BaseModel):

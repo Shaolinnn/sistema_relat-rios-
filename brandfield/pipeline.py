@@ -5,6 +5,9 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
+from zoneinfo import ZoneInfo
+
+import jinja2
 
 from brandfield.collectors.instagram_organic import InstagramOrganicCollector
 from brandfield.collectors.meta_ads import MetaAdsCollector
@@ -24,6 +27,27 @@ from brandfield.storage.json_store import DATA_DIR, JsonStore
 from brandfield.summary.executive import build_executive_summary
 
 logger = logging.getLogger(__name__)
+
+# Maps date_preset values to the number of days to look back in history
+_DATE_PRESET_DAYS: dict[str, int] = {
+    "yesterday": 1,
+    "last_7d": 7,
+    "last_14d": 14,
+    "last_30d": 30,
+    "this_month": 30,   # approximate; history chart uses 30d regardless
+    "last_month": 30,
+}
+
+
+def _today_in_timezone(tz_name: str) -> date:
+    """Return today's date in the client's configured timezone."""
+    from datetime import datetime, timezone as _tz
+    try:
+        tz = ZoneInfo(tz_name)
+    except Exception:
+        logger.warning("Unknown timezone %r, falling back to UTC", tz_name)
+        tz = ZoneInfo("UTC")
+    return datetime.now(tz).date()
 
 
 @dataclass
@@ -73,10 +97,16 @@ class ReportPipeline:
             success=False,
         )
 
-        today = date.today()
+        # Use client's timezone so date boundaries are correct regardless of where
+        # the server or GitHub Actions runner is located.
+        today = _today_in_timezone(self.client.timezone)
 
         # ── Step 1 & 2: Collect + Normalize ──────────────────────────────
         credentials = load_credentials(self.client)
+
+        # Determine collection window from the configured date_preset
+        collection_days = _DATE_PRESET_DAYS.get(self.client.meta.ads.date_preset, 7)
+        collection_start = today - timedelta(days=collection_days - 1)
 
         campaigns = []
         organic = None
@@ -91,7 +121,7 @@ class ReportPipeline:
                     dry_run=self.dry_run,
                 )
                 raw_ads = ads_collector.collect(
-                    start_date=today - timedelta(days=6),
+                    start_date=collection_start,
                     end_date=today,
                 )
                 campaigns = normalize_ads_response(
@@ -113,7 +143,7 @@ class ReportPipeline:
                     dry_run=self.dry_run,
                 )
                 raw_organic = organic_collector.collect(
-                    start_date=today - timedelta(days=6),
+                    start_date=collection_start,
                     end_date=today,
                 )
                 follower_count = next(
@@ -140,7 +170,7 @@ class ReportPipeline:
 
         # Abort if nothing was collected
         if not campaigns and organic is None:
-            result.add_error("No data collected from any source. Aborting pipeline.")
+            result.add_error("Nenhum dado coletado de nenhuma fonte. Abortando pipeline.")
             return result
 
         # ── Step 3: Build and save snapshot ──────────────────────────────
@@ -154,8 +184,8 @@ class ReportPipeline:
         logger.info("[%s] Snapshot saved for %s", self.client.slug, today.isoformat())
 
         # ── Step 4: Load historical range for charts ──────────────────────
-        days_back = 7 if period == "daily" else 30
-        history_start = today - timedelta(days=days_back - 1)
+        chart_days = collection_days if period == "daily" else max(collection_days, 30)
+        history_start = today - timedelta(days=chart_days - 1)
         snapshots = self.store.load_range(
             self.client.slug, start=history_start, end=today
         )
@@ -169,7 +199,7 @@ class ReportPipeline:
             )
             result.report_path = report_path
             logger.info("[%s] Report written to %s", self.client.slug, report_path)
-        except Exception as e:
+        except (jinja2.TemplateError, OSError) as e:
             result.add_error(f"HTML rendering failed: {e}")
             return result
 
@@ -178,6 +208,9 @@ class ReportPipeline:
         if wa_config.enabled:
             try:
                 provider = "none" if self.dry_run else wa_config.provider
+                # Pass credentials so providers can fall back to env vars.
+                # WhatsApp providers use their own env var names (META_WA_TOKEN etc.)
+                # rather than the per-client Meta token, so credentials dict is empty here.
                 notifier = get_notifier(provider, credentials={})
                 summary_text = build_executive_summary(self.client, snapshots, period)
                 msg = NotificationMessage(

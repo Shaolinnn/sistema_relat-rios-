@@ -74,3 +74,41 @@ def test_both_sources_disabled_raises():
         write_yaml(path, config)
         with pytest.raises(ConfigError):
             load_client_config(path)
+
+
+def test_organic_without_instagram_id_raises():
+    """organic.enabled=True but no instagram_business_id should fail."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = Path(tmpdir) / "invalid.yml"
+        config = {
+            "slug": "test_client",
+            "display_name": "Test",
+            "meta": {
+                "ad_account_id": "act_123",
+                "access_token_env": "META_TOKEN_TEST",
+                # instagram_business_id intentionally omitted
+                "organic": {"enabled": True},
+            },
+        }
+        write_yaml(path, config)
+        with pytest.raises(ConfigError):
+            load_client_config(path)
+
+
+def test_organic_disabled_without_instagram_id_is_valid():
+    """organic.enabled=False without instagram_business_id should be valid."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = Path(tmpdir) / "ads_only.yml"
+        config = {
+            "slug": "ads_only",
+            "display_name": "Ads Only Client",
+            "meta": {
+                "ad_account_id": "act_123",
+                "access_token_env": "META_TOKEN_TEST",
+                "organic": {"enabled": False},
+            },
+        }
+        write_yaml(path, config)
+        client = load_client_config(path)
+        assert client.meta.organic.enabled is False
+        assert client.meta.instagram_business_id is None
