@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}BrandField Reports — Todos os Clientes{% endblock %}
+
+{% block content %}
+<div class="header">
+  <div>
+    <h1>BrandField Reports</h1>
+    <div class="meta">Painel de Clientes</div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="section-title">Clientes Ativos</div>
+
+  {% if clients %}
+  <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px">
+    {% for client in clients %}
+    <a href="{{ client.slug }}/" style="text-decoration:none">
+      <div class="card" style="cursor:pointer; transition: box-shadow 0.2s; border-left: 4px solid var(--primary)">
+        <div style="font-size:1.1rem; font-weight:600; color:var(--text); margin-bottom:6px">
+          {{ client.display_name }}
+        </div>
+        <div style="font-size:0.82rem; color:var(--text-muted)">
+          {% if client.meta.ads.enabled %}📣 Meta Ads{% endif %}
+          {% if client.meta.organic.enabled %}  📱 Instagram Orgânico{% endif %}
+        </div>
+        <div style="margin-top:12px; font-size:0.82rem; color:var(--primary); font-weight:500">
+          Ver relatório →
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="card" style="text-align:center; color:var(--text-muted); padding:40px">
+    Nenhum cliente configurado ainda.<br>
+    Adicione um arquivo YAML em <code>clients/</code> para começar.
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

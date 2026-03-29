@@ -1,0 +1,41 @@
+{
+  "client_slug": "example_client",
+  "collected_at": "2026-03-29T16:43:55Z",
+  "report_date": "2026-03-29",
+  "campaigns": [
+    {
+      "campaign_id": "23843000000001",
+      "campaign_name": "Black Friday Retargeting",
+      "date_start": "2024-03-23",
+      "date_stop": "2024-03-29",
+      "impressions": 85000,
+      "clicks": 2200,
+      "spend": 2500.0,
+      "currency": "BRL",
+      "cpm": 29.41,
+      "cpc": 1.14,
+      "roas": 4.8
+    },
+    {
+      "campaign_id": "23843000000002",
+      "campaign_name": "Awareness — Topo de Funil",
+      "date_start": "2024-03-23",
+      "date_stop": "2024-03-29",
+      "impressions": 57500,
+      "clicks": 1600,
+      "spend": 1820.0,
+      "currency": "BRL",
+      "cpm": 31.65,
+      "cpc": 1.14,
+      "roas": 2.1
+    }
+  ],
+  "organic": {
+    "date": "2026-03-29",
+    "reach": 5100,
+    "impressions": 9800,
+    "profile_views": 410,
+    "follower_count": 12450,
+    "website_clicks": 0
+  }
+}

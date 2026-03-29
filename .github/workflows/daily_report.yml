@@ -1,0 +1,57 @@
+name: Daily Report
+
+on:
+  schedule:
+    - cron: '0 8 * * *'    # 08:00 UTC every day
+  workflow_dispatch:         # Allow manual trigger from GitHub UI
+
+permissions:
+  contents: write            # Required to commit docs/ and data/ back to repo
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run daily pipeline (all clients)
+        run: python -m brandfield run --period daily
+        env:
+          # ── Add one secret per client (name must match access_token_env in YAML) ──
+          META_TOKEN_EXAMPLE_CLIENT: ${{ secrets.META_TOKEN_EXAMPLE_CLIENT }}
+
+          # ── WhatsApp provider credentials ──────────────────────────────────────
+          # Meta WhatsApp Business API
+          META_WA_TOKEN: ${{ secrets.META_WA_TOKEN }}
+          META_WA_PHONE_ID: ${{ secrets.META_WA_PHONE_ID }}
+
+          # Twilio (if using Twilio provider)
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_WA_FROM: ${{ secrets.TWILIO_WA_FROM }}
+
+          # Evolution API (if using Evolution provider)
+          EVOLUTION_API_URL: ${{ secrets.EVOLUTION_API_URL }}
+          EVOLUTION_API_KEY: ${{ secrets.EVOLUTION_API_KEY }}
+          EVOLUTION_INSTANCE: ${{ secrets.EVOLUTION_INSTANCE }}
+
+      - name: Commit generated files
+        run: |
+          git config user.name "BrandField Bot"
+          git config user.email "bot@brandfield.internal"
+          git add docs/ data/
+          git diff --staged --quiet || git commit -m "chore: daily report $(date -u +%Y-%m-%d)"
+          git push

@@ -1,0 +1,32 @@
+[
+  {
+    "campaign_id": "23843000000001",
+    "campaign_name": "Black Friday Retargeting",
+    "date_start": "2024-03-23",
+    "date_stop": "2024-03-29",
+    "impressions": "85000",
+    "clicks": "2200",
+    "spend": "2500.00",
+    "cpm": "29.41",
+    "cpc": "1.14",
+    "purchase_roas": [
+      {"action_type": "offsite_conversion.fb_pixel_purchase", "value": "4.8"}
+    ],
+    "account_currency": "BRL"
+  },
+  {
+    "campaign_id": "23843000000002",
+    "campaign_name": "Awareness — Topo de Funil",
+    "date_start": "2024-03-23",
+    "date_stop": "2024-03-29",
+    "impressions": "57500",
+    "clicks": "1600",
+    "spend": "1820.00",
+    "cpm": "31.65",
+    "cpc": "1.14",
+    "purchase_roas": [
+      {"action_type": "offsite_conversion.fb_pixel_purchase", "value": "2.1"}
+    ],
+    "account_currency": "BRL"
+  }
+]

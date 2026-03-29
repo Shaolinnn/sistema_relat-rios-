@@ -1,0 +1,75 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# BrandField Client Configuration Template
+# Copy this file to clients/{client_slug}.yml and fill in the values.
+# Files starting with _ are ignored by the pipeline.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Unique identifier — lowercase letters, numbers, underscores only.
+# Used for file paths and URLs: docs/{slug}/index.html
+slug: your_client_slug
+
+# Display name shown in reports and WhatsApp messages
+display_name: "Client Display Name"
+
+# Timezone for date calculations (IANA timezone name)
+timezone: "America/Sao_Paulo"
+
+# ── Meta / Facebook / Instagram ───────────────────────────────────────────────
+meta:
+  # Found in Meta Business Manager → Ad Accounts
+  ad_account_id: "act_XXXXXXXXXXXXXXXXX"
+
+  # Found in Meta Business Manager → Instagram Accounts → Account ID
+  instagram_business_id: "XXXXXXXXXXXXXXXXX"
+
+  # Name of the environment variable holding the Meta access token.
+  # NEVER put the token value here — use an env var or GitHub Secret.
+  # The variable name must be unique per client to allow per-client revocation.
+  access_token_env: "META_TOKEN_YOUR_CLIENT_SLUG"
+
+  # ── Ads metrics ─────────────────────────────────────────────────────────────
+  ads:
+    enabled: true
+
+    # Date range for the report. Options:
+    # yesterday, last_7d, last_14d, last_30d, this_month, last_month
+    date_preset: "last_7d"
+
+    # Limit to specific campaign IDs. Leave empty [] to include all campaigns.
+    campaign_ids: []
+
+    # Metrics to fetch from the Insights API
+    metrics:
+      - impressions
+      - clicks
+      - spend
+      - cpm
+      - cpc
+      - purchase_roas
+
+  # ── Instagram Organic metrics ────────────────────────────────────────────────
+  organic:
+    enabled: true
+    metrics:
+      - reach
+      - impressions
+      - profile_views
+      - follower_count
+
+# ── Notifications ─────────────────────────────────────────────────────────────
+notifications:
+  whatsapp:
+    enabled: false
+
+    # WhatsApp provider. Options: "meta" | "twilio" | "evolution" | "none"
+    # "none" logs the message to stdout (safe for development)
+    provider: "none"
+
+    # Recipient phone in E.164 format (required when enabled: true)
+    recipient_phone: "+5511999999999"
+
+# ── Report options ────────────────────────────────────────────────────────────
+report:
+  schedule:
+    daily: true    # Run in daily_report.yml workflow
+    weekly: true   # Run in weekly_report.yml workflow

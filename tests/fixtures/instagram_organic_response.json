@@ -1,0 +1,35 @@
+[
+  {
+    "name": "reach",
+    "period": "day",
+    "values": [
+      {"value": 4200, "end_time": "2024-03-28T07:00:00+0000"},
+      {"value": 5100, "end_time": "2024-03-29T07:00:00+0000"}
+    ],
+    "id": "17841400000000/insights/reach/day"
+  },
+  {
+    "name": "impressions",
+    "period": "day",
+    "values": [
+      {"value": 8400, "end_time": "2024-03-28T07:00:00+0000"},
+      {"value": 9800, "end_time": "2024-03-29T07:00:00+0000"}
+    ],
+    "id": "17841400000000/insights/impressions/day"
+  },
+  {
+    "name": "profile_views",
+    "period": "day",
+    "values": [
+      {"value": 320, "end_time": "2024-03-28T07:00:00+0000"},
+      {"value": 410, "end_time": "2024-03-29T07:00:00+0000"}
+    ],
+    "id": "17841400000000/insights/profile_views/day"
+  },
+  {
+    "name": "follower_count",
+    "values": [
+      {"value": 12450}
+    ]
+  }
+]

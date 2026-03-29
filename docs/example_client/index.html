@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Example Brand — BrandField Reports</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-dark: #0d47a1;
+      --accent: #fbbc04;
+      --success: #34a853;
+      --danger: #ea4335;
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --text: #202124;
+      --text-muted: #5f6368;
+      --border: #e8eaed;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .header {
+      background: var(--primary);
+      color: #fff;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header h1 { font-size: 1.4rem; font-weight: 600; }
+    .header .meta { font-size: 0.85rem; opacity: 0.85; }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+      margin-top: 32px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px 24px;
+      border-left: 4px solid var(--primary);
+    }
+
+    .kpi-card .label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .kpi-card .value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .kpi-card.accent  { border-left-color: var(--accent); }
+    .kpi-card.success { border-left-color: var(--success); }
+    .kpi-card.danger  { border-left-color: var(--danger); }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+    }
+
+    .chart-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .chart-card h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .chart-container { position: relative; height: 220px; }
+
+    .summary-box {
+      background: #e8f5e9;
+      border-left: 4px solid var(--success);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 20px 24px;
+      font-family: monospace;
+      font-size: 0.88rem;
+      white-space: pre-line;
+      color: var(--text);
+      line-height: 1.8;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      padding: 32px 20px;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(255,255,255,0.2);
+    }
+
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .chart-grid { grid-template-columns: 1fr; }
+      .header { padding: 16px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Example Brand</h1>
+    <div class="meta">
+      Relatório Diário
+       · 29/03/2026
+    </div>
+  </div>
+  <div>
+    <span class="badge">Meta Ads + Instagram</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- KPI Cards -->
+  
+  <div class="section-title">Resumo do Período</div>
+  <div class="kpi-grid">
+
+    
+    <div class="kpi-card">
+      <div class="label">Investimento</div>
+      <div class="value">
+        R$
+        4.320,00
+      </div>
+    </div>
+    
+
+    
+    <div class="kpi-card accent">
+      <div class="label">ROAS Médio</div>
+      <div class="value">3.7x</div>
+    </div>
+    
+
+    <div class="kpi-card success">
+      <div class="label">Impressões</div>
+      <div class="value">142.500</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="label">Cliques</div>
+      <div class="value">3.800</div>
+    </div>
+
+    
+    <div class="kpi-card">
+      <div class="label">Alcance Orgânico</div>
+      <div class="value">5.100</div>
+    </div>
+    <div class="kpi-card success">
+      <div class="label">Seguidores</div>
+      <div class="value">12.450</div>
+    </div>
+    
+
+  </div>
+  
+
+  <!-- Charts -->
+  
+
+  <!-- Campaign Table -->
+  
+  <div class="section-title">Campanhas — Último Período</div>
+  <div class="card" style="overflow-x:auto">
+    <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border); text-align:left; color:var(--text-muted)">
+          <th style="padding:10px 12px">Campanha</th>
+          <th style="padding:10px 12px; text-align:right">Investimento</th>
+          <th style="padding:10px 12px; text-align:right">Impressões</th>
+          <th style="padding:10px 12px; text-align:right">Cliques</th>
+          <th style="padding:10px 12px; text-align:right">CPM</th>
+          <th style="padding:10px 12px; text-align:right">CPC</th>
+          <th style="padding:10px 12px; text-align:right">ROAS</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:10px 12px; font-weight:500">Black Friday Retargeting</td>
+          <td style="padding:10px 12px; text-align:right">
+            2.500,00
+          </td>
+          <td style="padding:10px 12px; text-align:right">
+            85.000
+          </td>
+          <td style="padding:10px 12px; text-align:right">
+            2.200
+          </td>
+          <td style="padding:10px 12px; text-align:right">
+            29.41
+          </td>
+          <td style="padding:10px 12px; text-align:right">
+            1.14
+          </td>
+          <td style="padding:10px 12px; text-align:right; font-weight:600; color:var(--success)">
+            4.8x
+          </td>
+        </tr>
+        
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:10px 12px; font-weight:500">Awareness — Topo de Funil</td>
+          <td style="padding:10px 12px; text-align:right">
+            1.820,00
+          </td>
+          <td style="padding:10px 12px; text-align:right">
+            57.500
+          </td>
+          <td style="padding:10px 12px; text-align:right">
+            1.600
+          </td>
+          <td style="padding:10px 12px; text-align:right">
+            31.65
+          </td>
+          <td style="padding:10px 12px; text-align:right">
+            1.14
+          </td>
+          <td style="padding:10px 12px; text-align:right; font-weight:600; color:var(--success)">
+            2.1x
+          </td>
+        </tr>
+        
+      </tbody>
+    </table>
+  </div>
+  
+
+  <!-- Executive Summary -->
+  
+  <div class="section-title">Resumo Executivo (WhatsApp)</div>
+  <div class="summary-box">📊 *Example Brand — Relatório Diário (29/03/2026)*
+
+*📣 Meta Ads*
+💰 Investimento: R$ 4.320,00
+📈 ROAS: 3.7x
+👁️ Impressões: 142.500
+🖱️ Cliques: 3.800 (CTR: 2.67%)
+
+🏆 Top Campanha: &#34;Black Friday Retargeting&#34;
+  → R$ 2.500,00 spend | 4.8x ROAS
+
+*📱 Instagram Orgânico*
+Alcance: 5.100
+Impressões: 9.800
+Seguidores: 12.450
+Visitas ao perfil: 410
+
+_Gerado automaticamente pelo BrandField Reports_</div>
+  
+
+</div>
+
+<script>
+const LABELS = [&#34;29/03&#34;];
+const SPEND  = [4320.0];
+const IMPS   = [142500];
+const CLICKS = [3800];
+const FOLLOWERS = [12450];
+const CAMP_NAMES = [&#34;Black Friday Retargeting&#34;, &#34;Awareness \u2014 Topo de Funil&#34;];
+const CAMP_SPEND = [2500.0, 1820.0];
+
+const PALETTE = [
+  "#1a73e8","#34a853","#fbbc04","#ea4335",
+  "#4285f4","#0f9d58","#f4b400","#db4437",
+];
+
+function makeLineChart(id, datasets) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: "line",
+    data: { labels: LABELS, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "top" } },
+      scales: { y: { beginAtZero: true } },
+    }
+  });
+}
+
+// Spend chart
+makeLineChart("spendChart", [{
+  label: "Investimento",
+  data: SPEND,
+  borderColor: "#1a73e8",
+  backgroundColor: "rgba(26,115,232,0.1)",
+  fill: true,
+  tension: 0.3,
+}]);
+
+// Traffic chart
+makeLineChart("trafficChart", [
+  {
+    label: "Impressões",
+    data: IMPS,
+    borderColor: "#34a853",
+    backgroundColor: "rgba(52,168,83,0.1)",
+    fill: false, tension: 0.3,
+    yAxisID: "y",
+  },
+  {
+    label: "Cliques",
+    data: CLICKS,
+    borderColor: "#fbbc04",
+    backgroundColor: "rgba(251,188,4,0.1)",
+    fill: false, tension: 0.3,
+    yAxisID: "y1",
+  },
+]);
+
+// Follower chart
+if (document.getElementById("followerChart")) {
+  makeLineChart("followerChart", [{
+    label: "Seguidores",
+    data: FOLLOWERS,
+    borderColor: "#ea4335",
+    backgroundColor: "rgba(234,67,53,0.1)",
+    fill: true, tension: 0.3,
+    spanGaps: true,
+  }]);
+}
+
+// Budget doughnut
+if (document.getElementById("budgetChart") && CAMP_NAMES.length > 0) {
+  new Chart(document.getElementById("budgetChart"), {
+    type: "doughnut",
+    data: {
+      labels: CAMP_NAMES,
+      datasets: [{
+        data: CAMP_SPEND,
+        backgroundColor: PALETTE.slice(0, CAMP_NAMES.length),
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "right" } },
+    }
+  });
+}
+</script>
+
+<div class="footer">
+  Gerado automaticamente em 29/03/2026 às 16:43 UTC pelo <strong>BrandField Reports</strong>
+</div>
+</body>
+</html>

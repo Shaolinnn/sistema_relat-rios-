@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client.display_name }} — BrandField Reports{% endblock %}
+
+{% block content %}
+<div class="header">
+  <div>
+    <h1>{{ client.display_name }}</h1>
+    <div class="meta">
+      {% if period == "daily" %}Relatório Diário{% else %}Relatório Semanal{% endif %}
+      {% if latest %} · {{ latest.report_date.strftime("%d/%m/%Y") }}{% endif %}
+    </div>
+  </div>
+  <div>
+    <span class="badge">Meta Ads + Instagram</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- KPI Cards -->
+  {% if snapshots %}
+  <div class="section-title">Resumo do Período</div>
+  <div class="kpi-grid">
+
+    {% if total_spend is not none %}
+    <div class="kpi-card">
+      <div class="label">Investimento</div>
+      <div class="value">
+        {% if currency == "BRL" %}R${% else %}${% endif %}
+        {{ "{:,.2f}".format(total_spend).replace(",", "X").replace(".", ",").replace("X", ".") }}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if avg_roas is not none %}
+    <div class="kpi-card accent">
+      <div class="label">ROAS Médio</div>
+      <div class="value">{{ "%.1f"|format(avg_roas) }}x</div>
+    </div>
+    {% endif %}
+
+    <div class="kpi-card success">
+      <div class="label">Impressões</div>
+      <div class="value">{{ "{:,}".format(total_impressions).replace(",", ".") }}</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="label">Cliques</div>
+      <div class="value">{{ "{:,}".format(total_clicks).replace(",", ".") }}</div>
+    </div>
+
+    {% if latest_organic %}
+    <div class="kpi-card">
+      <div class="label">Alcance Orgânico</div>
+      <div class="value">{{ "{:,}".format(latest_organic.reach).replace(",", ".") }}</div>
+    </div>
+    <div class="kpi-card success">
+      <div class="label">Seguidores</div>
+      <div class="value">{{ "{:,}".format(latest_organic.follower_count).replace(",", ".") }}</div>
+    </div>
+    {% endif %}
+
+  </div>
+  {% endif %}
+
+  <!-- Charts -->
+  {% if snapshots | length > 1 %}
+  <div class="section-title">Evolução no Período</div>
+  <div class="chart-grid">
+
+    <div class="chart-card">
+      <h3>Investimento Diário</h3>
+      <div class="chart-container">
+        <canvas id="spendChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Impressões e Cliques</h3>
+      <div class="chart-container">
+        <canvas id="trafficChart"></canvas>
+      </div>
+    </div>
+
+    {% if follower_series | select | list | length > 0 %}
+    <div class="chart-card">
+      <h3>Crescimento de Seguidores</h3>
+      <div class="chart-container">
+        <canvas id="followerChart"></canvas>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if campaign_names %}
+    <div class="chart-card">
+      <h3>Distribuição de Verba por Campanha</h3>
+      <div class="chart-container">
+        <canvas id="budgetChart"></canvas>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+  {% endif %}
+
+  <!-- Campaign Table -->
+  {% if latest and latest.campaigns %}
+  <div class="section-title">Campanhas — Último Período</div>
+  <div class="card" style="overflow-x:auto">
+    <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border); text-align:left; color:var(--text-muted)">
+          <th style="padding:10px 12px">Campanha</th>
+          <th style="padding:10px 12px; text-align:right">Investimento</th>
+          <th style="padding:10px 12px; text-align:right">Impressões</th>
+          <th style="padding:10px 12px; text-align:right">Cliques</th>
+          <th style="padding:10px 12px; text-align:right">CPM</th>
+          <th style="padding:10px 12px; text-align:right">CPC</th>
+          <th style="padding:10px 12px; text-align:right">ROAS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in latest.campaigns | sort(attribute='spend', reverse=True) %}
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:10px 12px; font-weight:500">{{ c.campaign_name }}</td>
+          <td style="padding:10px 12px; text-align:right">
+            {{ "{:,.2f}".format(c.spend).replace(",", "X").replace(".", ",").replace("X", ".") }}
+          </td>
+          <td style="padding:10px 12px; text-align:right">
+            {{ "{:,}".format(c.impressions).replace(",", ".") }}
+          </td>
+          <td style="padding:10px 12px; text-align:right">
+            {{ "{:,}".format(c.clicks).replace(",", ".") }}
+          </td>
+          <td style="padding:10px 12px; text-align:right">
+            {{ "%.2f"|format(c.cpm) }}
+          </td>
+          <td style="padding:10px 12px; text-align:right">
+            {{ "%.2f"|format(c.cpc) }}
+          </td>
+          <td style="padding:10px 12px; text-align:right; font-weight:600; color:var(--success)">
+            {% if c.roas %}{{ "%.1f"|format(c.roas) }}x{% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- Executive Summary -->
+  {% if executive_summary %}
+  <div class="section-title">Resumo Executivo (WhatsApp)</div>
+  <div class="summary-box">{{ executive_summary }}</div>
+  {% endif %}
+
+</div>
+
+<script>
+const LABELS = {{ chart_labels | json }};
+const SPEND  = {{ spend_series | json }};
+const IMPS   = {{ impressions_series | json }};
+const CLICKS = {{ clicks_series | json }};
+const FOLLOWERS = {{ follower_series | json }};
+const CAMP_NAMES = {{ campaign_names | json }};
+const CAMP_SPEND = {{ campaign_spends | json }};
+
+const PALETTE = [
+  "#1a73e8","#34a853","#fbbc04","#ea4335",
+  "#4285f4","#0f9d58","#f4b400","#db4437",
+];
+
+function makeLineChart(id, datasets) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: "line",
+    data: { labels: LABELS, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "top" } },
+      scales: { y: { beginAtZero: true } },
+    }
+  });
+}
+
+// Spend chart
+makeLineChart("spendChart", [{
+  label: "Investimento",
+  data: SPEND,
+  borderColor: "#1a73e8",
+  backgroundColor: "rgba(26,115,232,0.1)",
+  fill: true,
+  tension: 0.3,
+}]);
+
+// Traffic chart
+makeLineChart("trafficChart", [
+  {
+    label: "Impressões",
+    data: IMPS,
+    borderColor: "#34a853",
+    backgroundColor: "rgba(52,168,83,0.1)",
+    fill: false, tension: 0.3,
+    yAxisID: "y",
+  },
+  {
+    label: "Cliques",
+    data: CLICKS,
+    borderColor: "#fbbc04",
+    backgroundColor: "rgba(251,188,4,0.1)",
+    fill: false, tension: 0.3,
+    yAxisID: "y1",
+  },
+]);
+
+// Follower chart
+if (document.getElementById("followerChart")) {
+  makeLineChart("followerChart", [{
+    label: "Seguidores",
+    data: FOLLOWERS,
+    borderColor: "#ea4335",
+    backgroundColor: "rgba(234,67,53,0.1)",
+    fill: true, tension: 0.3,
+    spanGaps: true,
+  }]);
+}
+
+// Budget doughnut
+if (document.getElementById("budgetChart") && CAMP_NAMES.length > 0) {
+  new Chart(document.getElementById("budgetChart"), {
+    type: "doughnut",
+    data: {
+      labels: CAMP_NAMES,
+      datasets: [{
+        data: CAMP_SPEND,
+        backgroundColor: PALETTE.slice(0, CAMP_NAMES.length),
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "right" } },
+    }
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,42 @@
+# Example client config — uses dry-run fixtures for local development.
+# Replace these values with real ones for production use.
+
+slug: example_client
+display_name: "Example Brand"
+timezone: "America/Sao_Paulo"
+
+meta:
+  ad_account_id: "act_123456789"
+  instagram_business_id: "17841400000000"
+  access_token_env: "META_TOKEN_EXAMPLE_CLIENT"
+
+  ads:
+    enabled: true
+    date_preset: "last_7d"
+    campaign_ids: []
+    metrics:
+      - impressions
+      - clicks
+      - spend
+      - cpm
+      - cpc
+      - purchase_roas
+
+  organic:
+    enabled: true
+    metrics:
+      - reach
+      - impressions
+      - profile_views
+      - follower_count
+
+notifications:
+  whatsapp:
+    enabled: true
+    provider: "none"          # Change to "meta", "twilio", or "evolution" in production
+    recipient_phone: "+5511999999999"
+
+report:
+  schedule:
+    daily: true
+    weekly: true

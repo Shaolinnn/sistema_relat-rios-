@@ -1,0 +1,49 @@
+name: Weekly Report
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'    # 09:00 UTC every Monday
+  workflow_dispatch:         # Allow manual trigger from GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run weekly pipeline (all clients)
+        run: python -m brandfield run --period weekly
+        env:
+          META_TOKEN_EXAMPLE_CLIENT: ${{ secrets.META_TOKEN_EXAMPLE_CLIENT }}
+          META_WA_TOKEN: ${{ secrets.META_WA_TOKEN }}
+          META_WA_PHONE_ID: ${{ secrets.META_WA_PHONE_ID }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_WA_FROM: ${{ secrets.TWILIO_WA_FROM }}
+          EVOLUTION_API_URL: ${{ secrets.EVOLUTION_API_URL }}
+          EVOLUTION_API_KEY: ${{ secrets.EVOLUTION_API_KEY }}
+          EVOLUTION_INSTANCE: ${{ secrets.EVOLUTION_INSTANCE }}
+
+      - name: Commit generated files
+        run: |
+          git config user.name "BrandField Bot"
+          git config user.email "bot@brandfield.internal"
+          git add docs/ data/
+          git diff --staged --quiet || git commit -m "chore: weekly report $(date -u +%Y-%m-%d)"
+          git push
