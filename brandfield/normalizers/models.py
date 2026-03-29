@@ -2,7 +2,56 @@
 
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Optional
+from typing import List, Optional
+
+
+# ── GA4 dataclasses ───────────────────────────────────────────────────────────
+
+@dataclass
+class GA4DailyRow:
+    """Uma linha de dados diários do GA4."""
+    date: date
+    sessions: int
+    users: int
+    new_users: int
+    pageviews: int
+    bounce_rate: float          # 0.0 – 1.0
+    avg_session_duration: float  # segundos
+    conversions: int
+
+
+@dataclass
+class GA4TopPage:
+    page_path: str
+    pageviews: int
+    avg_time_on_page: float  # segundos
+
+
+@dataclass
+class GA4TopSource:
+    source: str
+    medium: str
+    sessions: int
+
+
+@dataclass
+class GA4Metrics:
+    """Métricas consolidadas de uma propriedade GA4 para um período."""
+
+    property_id: str
+    period_start: date
+    period_end: date
+
+    total_sessions: int = 0
+    total_users: int = 0
+    total_new_users: int = 0
+    total_pageviews: int = 0
+    avg_bounce_rate: float = 0.0
+    avg_session_duration: float = 0.0
+
+    daily: List[GA4DailyRow] = field(default_factory=list)
+    top_pages: List[GA4TopPage] = field(default_factory=list)
+    top_sources: List[GA4TopSource] = field(default_factory=list)
 
 
 @dataclass
@@ -38,6 +87,7 @@ class ClientSnapshot:
     report_date: date
     campaigns: list[CampaignMetrics] = field(default_factory=list)
     organic: Optional[OrganicMetrics] = None
+    ga4: Optional[GA4Metrics] = None
 
     # ── Aggregate helpers ──────────────────────────────────────────────────
 
@@ -100,6 +150,50 @@ class ClientSnapshot:
                 if self.organic
                 else None
             ),
+            "ga4": (
+                {
+                    "property_id": self.ga4.property_id,
+                    "period_start": self.ga4.period_start.isoformat(),
+                    "period_end": self.ga4.period_end.isoformat(),
+                    "total_sessions": self.ga4.total_sessions,
+                    "total_users": self.ga4.total_users,
+                    "total_new_users": self.ga4.total_new_users,
+                    "total_pageviews": self.ga4.total_pageviews,
+                    "avg_bounce_rate": self.ga4.avg_bounce_rate,
+                    "avg_session_duration": self.ga4.avg_session_duration,
+                    "daily": [
+                        {
+                            "date": r.date.isoformat(),
+                            "sessions": r.sessions,
+                            "users": r.users,
+                            "new_users": r.new_users,
+                            "pageviews": r.pageviews,
+                            "bounce_rate": r.bounce_rate,
+                            "avg_session_duration": r.avg_session_duration,
+                            "conversions": r.conversions,
+                        }
+                        for r in self.ga4.daily
+                    ],
+                    "top_pages": [
+                        {
+                            "page_path": p.page_path,
+                            "pageviews": p.pageviews,
+                            "avg_time_on_page": p.avg_time_on_page,
+                        }
+                        for p in self.ga4.top_pages
+                    ],
+                    "top_sources": [
+                        {
+                            "source": s.source,
+                            "medium": s.medium,
+                            "sessions": s.sessions,
+                        }
+                        for s in self.ga4.top_sources
+                    ],
+                }
+                if self.ga4
+                else None
+            ),
         }
 
     @classmethod
@@ -134,10 +228,16 @@ class ClientSnapshot:
                 website_clicks=o.get("website_clicks", 0),
             )
 
+        ga4 = None
+        if data.get("ga4"):
+            from brandfield.normalizers.ga4 import GA4Normalizer
+            ga4 = GA4Normalizer().normalize(data["ga4"])
+
         return cls(
             client_slug=data["client_slug"],
             collected_at=data["collected_at"],
             report_date=date.fromisoformat(data["report_date"]),
             campaigns=campaigns,
             organic=organic,
+            ga4=ga4,
         )

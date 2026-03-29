@@ -44,7 +44,7 @@ def test_write_client_report_creates_file(sample_client_config, sample_snapshot)
         )
         assert path.exists()
         assert path.name == "index.html"
-        content = path.read_text()
+        content = path.read_text(encoding="utf-8")
         assert "Test Client" in content
 
 

@@ -5,6 +5,27 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, model_validator
 
 
+class GA4Config(BaseModel):
+    """Configuração da propriedade Google Analytics 4."""
+
+    property_id: str = Field(
+        ...,
+        description="ID numérico da propriedade GA4 (ex: '487849790')",
+        pattern=r"^\d+$",
+    )
+    credentials_env: str = Field(
+        default="GA4_SERVICE_ACCOUNT_JSON",
+        description=(
+            "Nome da variável de ambiente que contém o JSON completo "
+            "da service account. Padrão: GA4_SERVICE_ACCOUNT_JSON"
+        ),
+    )
+    enabled: bool = Field(
+        default=True,
+        description="Desabilitar temporariamente sem remover a config.",
+    )
+
+
 class MetaAdsConfig(BaseModel):
     enabled: bool = True
     date_preset: Literal[
@@ -76,5 +97,6 @@ class ClientConfig(BaseModel):
     display_name: str
     timezone: str = "America/Sao_Paulo"
     meta: MetaConfig
+    google_analytics: Optional[GA4Config] = None
     notifications: NotificationsConfig = Field(default_factory=NotificationsConfig)
     report: ReportConfig = Field(default_factory=ReportConfig)

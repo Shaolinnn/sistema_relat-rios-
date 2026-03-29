@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from typing import Optional
 
 from brandfield.config.schema import ClientConfig
-from brandfield.normalizers.models import ClientSnapshot
+from brandfield.normalizers.models import ClientSnapshot, GA4Metrics
 
 
 def _fmt_currency(value: float, currency: str) -> str:
@@ -22,6 +22,50 @@ def _fmt_roas(value: Optional[float]) -> str:
     if value is None:
         return "N/A"
     return f"{value:.1f}x"
+
+
+def _fmt_duration(seconds: float) -> str:
+    """Converte segundos para 'Xmin Ys'."""
+    m = int(seconds // 60)
+    s = int(seconds % 60)
+    if m > 0:
+        return f"{m}min {s}s"
+    return f"{s}s"
+
+
+def _ga4_section(ga4: GA4Metrics) -> str:
+    """Retorna o bloco de texto '🌐 Site' para o resumo WhatsApp."""
+    bounce_pct = round(ga4.avg_bounce_rate * 100, 1)
+    duration_fmt = _fmt_duration(ga4.avg_session_duration)
+    new_pct = (
+        round(ga4.total_new_users / ga4.total_users * 100, 1)
+        if ga4.total_users > 0
+        else 0.0
+    )
+
+    top_pages_lines = "\n".join(
+        f"  {i + 1}. {p.page_path} ({p.pageviews:,} views)".replace(",", ".")
+        for i, p in enumerate(ga4.top_pages[:3])
+    )
+
+    top_sources_lines = "\n".join(
+        f"  {i + 1}. {s.source} / {s.medium} ({s.sessions:,} sessões)".replace(",", ".")
+        for i, s in enumerate(ga4.top_sources[:3])
+    )
+
+    lines = [
+        "*🌐 Site (GA4)*",
+        f"Sessões: {_fmt_number(ga4.total_sessions)}",
+        f"Usuários: {_fmt_number(ga4.total_users)} ({new_pct}% novos)",
+        f"Pageviews: {_fmt_number(ga4.total_pageviews)}",
+        f"Bounce rate: {bounce_pct}%",
+        f"Duração média: {duration_fmt}",
+    ]
+    if top_pages_lines:
+        lines += ["", f"📄 Top páginas:\n{top_pages_lines}"]
+    if top_sources_lines:
+        lines += ["", f"📡 Top fontes:\n{top_sources_lines}"]
+    return "\n".join(lines)
 
 
 def _top_campaign(snapshots: list[ClientSnapshot]) -> Optional[str]:
@@ -132,6 +176,11 @@ def build_executive_summary(
         if org.profile_views:
             lines.append(f"Visitas ao perfil: {_fmt_number(org.profile_views)}")
         lines.append("")
+
+    # GA4 section (latest snapshot that has ga4 data)
+    ga4_snapshot = next((s for s in reversed(snapshots) if s.ga4 is not None), None)
+    if ga4_snapshot and ga4_snapshot.ga4:
+        lines += [_ga4_section(ga4_snapshot.ga4), ""]
 
     lines.append("_Gerado automaticamente pelo BrandField Reports_")
 

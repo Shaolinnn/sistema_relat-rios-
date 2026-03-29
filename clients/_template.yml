@@ -56,6 +56,13 @@ meta:
       - profile_views
       - follower_count
 
+# ── Google Analytics 4 ────────────────────────────────────────────────────────
+# Remova esta seção inteira se o cliente não usar GA4.
+# google_analytics:
+#   property_id: "487849790"          # Admin → Property Settings → Property ID
+#   credentials_env: GA4_SERVICE_ACCOUNT_JSON  # secret com o JSON completo da service account
+#   enabled: true
+
 # ── Notifications ─────────────────────────────────────────────────────────────
 notifications:
   whatsapp:
