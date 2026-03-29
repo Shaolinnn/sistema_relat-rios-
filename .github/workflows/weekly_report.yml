@@ -40,6 +40,9 @@ jobs:
           EVOLUTION_API_KEY: ${{ secrets.EVOLUTION_API_KEY }}
           EVOLUTION_INSTANCE: ${{ secrets.EVOLUTION_INSTANCE }}
 
+          # ── Google Analytics 4 ─────────────────────────────────────────────
+          GA4_SERVICE_ACCOUNT_JSON: ${{ secrets.GA4_SERVICE_ACCOUNT_JSON }}
+
       - name: Commit generated files
         run: |
           git config user.name "BrandField Bot"
